@@ -1,0 +1,31 @@
+name: Validate ComputeSharp queue skip
+on:
+  push:
+    branches: [validation/codex24-cross2816]
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: pip install -e '.[test]' black==26.10.1 isort==9.0.2 ruff==0.17.0
+      - name: Test exact product
+        run: |
+          git checkout ac43df912050ff22c9994ac0e3855f0865411989
+          pytest tests/test_ci_workflows.py demos/integrations/computesharp/tests/test_workflow.py -q --junitxml=focused.xml
+          black --check --preview --target-version=py38 tests/test_ci_workflows.py demos/integrations/computesharp/tests/test_workflow.py
+          isort --profile black --check-only tests/test_ci_workflows.py demos/integrations/computesharp/tests/test_workflow.py
+          ruff check --select E9,F63,F7,F82 --target-version py38 tests/test_ci_workflows.py demos/integrations/computesharp/tests/test_workflow.py
+          git diff --check
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cross2816-results
+          path: focused.xml
