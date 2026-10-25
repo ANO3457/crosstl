@@ -29,7 +29,7 @@ jobs:
           echo "$RUNNER_TEMP/mojo/bin" >> "$GITHUB_PATH"
           "$RUNNER_TEMP/mojo/bin/mojo" --version
       - name: Translate and execute the new public regressions
-        run: python -m pytest tests/test_translator/test_mojo_vector_comparison_types.py -q --tb=short --junitxml=native.xml
+        run: '"${{ env.pythonLocation }}/bin/python" -m pytest tests/test_translator/test_mojo_vector_comparison_types.py -q --tb=short --junitxml=native.xml'
       - uses: actions/upload-artifact@v6
         if: always()
         with:
