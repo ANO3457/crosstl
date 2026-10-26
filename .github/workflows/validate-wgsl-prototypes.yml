@@ -1,0 +1,56 @@
+name: Validate WGSL function prototypes
+on:
+  push:
+    branches: [validation/wgsl-prototypes-3207]
+    paths: [.github/workflows/validate-wgsl-prototypes.yml]
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 62fc1e12ae13b13adec0b30f113c19ee66b8dc48
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install test dependencies
+        run: python -m pip install -e ".[test]" black==26.10.1 isort==9.0.2 ruff
+      - name: Check changed Python style
+        run: |
+          black --diff --preview --target-version=py38 tests/test_translator/test_wgsl_function_prototypes.py
+          black --check --preview --target-version=py38 crosstl/translator/codegen/wgsl_codegen.py tests/test_translator/test_wgsl_function_prototypes.py
+          isort --check-only --profile=black crosstl/translator/codegen/wgsl_codegen.py tests/test_translator/test_wgsl_function_prototypes.py
+          ruff check --select=E9,F63,F7,F82 --target-version=py38 crosstl/translator/codegen/wgsl_codegen.py tests/test_translator/test_wgsl_function_prototypes.py
+      - name: Reproduce the original prototype bug
+        run: |
+          cp crosstl/translator/codegen/wgsl_codegen.py "$RUNNER_TEMP/fixed.py"
+          trap 'cp "$RUNNER_TEMP/fixed.py" crosstl/translator/codegen/wgsl_codegen.py' EXIT
+          git show e62a31537398c7fa894a586d611e696e5ba916d0:crosstl/translator/codegen/wgsl_codegen.py > crosstl/translator/codegen/wgsl_codegen.py
+          set +e
+          python -m pytest -q tests/test_translator/test_wgsl_function_prototypes.py --junitxml=baseline.xml
+          status=$?
+          set -e
+          test "$status" -eq 1
+          python - <<'PY'
+          import xml.etree.ElementTree as ET
+          root = ET.parse("baseline.xml").getroot()
+          assert len(root.findall(".//testcase")) == 3
+          assert len(root.findall(".//failure")) == 1
+          assert not root.findall(".//error")
+          assert not root.findall(".//skipped")
+          PY
+      - name: Test fixed behavior and adjacent WGSL suites
+        run: |
+          python -m pytest -q -n 4 --dist loadfile             tests/test_translator/test_wgsl_function_prototypes.py             tests/test_translator/test_codegen/test_wgsl_codegen.py             tests/test_translator/test_wgsl_integer_builtins.py             tests/test_translator/test_wgsl_parameter_lowering.py             tests/test_translator/test_wgsl_resource_bindings.py             tests/test_translator/test_wgsl_switch_discard_splat.py             tests/test_translator/test_wgsl_texture_size_signed.py             tests/test_translator/test_wgsl_value_side_effects.py             --junitxml=fixed.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: wgsl-prototype-test-evidence
+          path: |
+            baseline.xml
+            fixed.xml
