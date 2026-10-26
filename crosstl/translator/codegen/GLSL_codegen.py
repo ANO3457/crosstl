@@ -12371,6 +12371,12 @@ class GLSLCodeGen(
                     visit_sequence(getattr(value, "body", None), loop_intervals)
                 clear_interval_targets(intervals, mutated)
                 return
+            if isinstance(value, ArrayAccessNode):
+                # The AST exposes legacy aliases for the same array and index.
+                # Visit each structural operand once so index side effects are not replayed.
+                visit(value.array, intervals)
+                visit(value.index, intervals)
+                return
             if hasattr(value, "child_nodes"):
                 for child in value.child_nodes():
                     visit(child, intervals)
