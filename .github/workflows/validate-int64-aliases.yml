@@ -22,6 +22,7 @@ jobs:
         run: python -m pip install -e ".[test]" black==26.10.1 isort==9.0.2 ruff
       - name: Check changed Python style
         run: |
+          black --diff --preview --target-version=py38 tests/test_translator/test_cuda_hip_64bit_aliases.py
           black --check --preview --target-version=py38 crosstl/translator/codegen/cuda_codegen.py crosstl/translator/codegen/hip_codegen.py tests/test_translator/test_cuda_hip_64bit_aliases.py
           isort --check-only --profile=black crosstl/translator/codegen/cuda_codegen.py crosstl/translator/codegen/hip_codegen.py tests/test_translator/test_cuda_hip_64bit_aliases.py
           ruff check --select=E9,F63,F7,F82 --target-version=py38 crosstl/translator/codegen/cuda_codegen.py crosstl/translator/codegen/hip_codegen.py tests/test_translator/test_cuda_hip_64bit_aliases.py
