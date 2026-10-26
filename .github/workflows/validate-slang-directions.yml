@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 1d71e7301187dbe76423958be6c2c495626b08da
+          ref: 241c14d13b376e66e720329596105a779672ac49
           fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-python@v5
@@ -23,9 +23,9 @@ jobs:
       - name: Check changed Python style
         run: |
           black --diff --preview --target-version=py38 tests/test_backend/test_slang/test_slang_parameter_directions.py
-          black --check --preview --target-version=py38 crosstl/backend/slang/SlangCrossGLCodeGen.py tests/test_backend/test_slang/test_slang_parameter_directions.py
-          isort --check-only --profile=black crosstl/backend/slang/SlangCrossGLCodeGen.py tests/test_backend/test_slang/test_slang_parameter_directions.py
-          ruff check --select=E9,F63,F7,F82 --target-version=py38 crosstl/backend/slang/SlangCrossGLCodeGen.py tests/test_backend/test_slang/test_slang_parameter_directions.py
+          black --check --preview --target-version=py38 crosstl/backend/slang/SlangCrossGLCodeGen.py tests/test_backend/test_slang/test_slang_parameter_directions.py tests/test_backend/test_slang/test_external_fixtures.py
+          isort --check-only --profile=black crosstl/backend/slang/SlangCrossGLCodeGen.py tests/test_backend/test_slang/test_slang_parameter_directions.py tests/test_backend/test_slang/test_external_fixtures.py
+          ruff check --select=E9,F63,F7,F82 --target-version=py38 crosstl/backend/slang/SlangCrossGLCodeGen.py tests/test_backend/test_slang/test_slang_parameter_directions.py tests/test_backend/test_slang/test_external_fixtures.py
       - name: Reproduce original failures and plain-parameter control
         run: |
           cp crosstl/backend/slang/SlangCrossGLCodeGen.py "$RUNNER_TEMP/fixed.py"
