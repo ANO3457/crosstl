@@ -28,9 +28,13 @@ def shader(stage, initial, index, followup="k"):
     )
 
 
-@pytest.mark.parametrize(("backend", "stage"), [("opengl", "compute"), ("webgl", "fragment")])
+@pytest.mark.parametrize(
+    ("backend", "stage"), [("opengl", "compute"), ("webgl", "fragment")]
+)
 @pytest.mark.parametrize(("initial", "index"), [(0, "k++"), (1, "k--"), (0, "++k")])
-def test_in_range_increment_is_not_counted_twice(tmp_path, backend, stage, initial, index):
+def test_in_range_increment_is_not_counted_twice(
+    tmp_path, backend, stage, initial, index
+):
     source = tmp_path / "increment.cgl"
     source.write_text(shader(stage, initial, index))
     output = crosstl.translate(str(source), backend=backend, format_output=False)
@@ -48,7 +52,9 @@ def test_in_range_increment_is_not_counted_twice(tmp_path, backend, stage, initi
         assert result.returncode == 0, result.stdout + result.stderr
 
 
-@pytest.mark.parametrize(("backend", "stage"), [("opengl", "compute"), ("webgl", "fragment")])
+@pytest.mark.parametrize(
+    ("backend", "stage"), [("opengl", "compute"), ("webgl", "fragment")]
+)
 def test_followup_out_of_bounds_is_still_rejected(tmp_path, backend, stage):
     source = tmp_path / "out_of_bounds.cgl"
     source.write_text(shader(stage, 1, "k++"))
@@ -56,7 +62,9 @@ def test_followup_out_of_bounds_is_still_rejected(tmp_path, backend, stage):
         crosstl.translate(str(source), backend=backend, format_output=False)
 
 
-@pytest.mark.parametrize(("backend", "stage"), [("opengl", "compute"), ("webgl", "fragment")])
+@pytest.mark.parametrize(
+    ("backend", "stage"), [("opengl", "compute"), ("webgl", "fragment")]
+)
 def test_ordinary_in_range_access_remains_valid(tmp_path, backend, stage):
     source = tmp_path / "plain.cgl"
     source.write_text(shader(stage, 0, "k"))
